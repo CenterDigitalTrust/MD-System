@@ -22,32 +22,25 @@ The system achieves trustless verification by separating the data layer from the
 ## Visual Workflow
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#1a1a1a', 'primaryTextColor': '#f4f4f0', 'primaryBorderColor': '#d4af37', 'lineColor': '#d4af37', 'tertiaryColor': '#333333'}}}%%
 flowchart TD
-    classDef hardware fill:#2b2b2b,stroke:#d4af37,stroke-width:2px,color:#f4f4f0,font-weight:bold
-    classDef storage fill:#1e3d59,stroke:#43b0f1,stroke-width:2px,color:#fff,font-weight:bold
-    classDef aggregator fill:#8c3a3a,stroke:#e85a4f,stroke-width:2px,color:#fff,font-weight:bold
-    classDef blockchain fill:#141414,stroke:#14f195,stroke-width:2px,color:#fff,font-weight:bold
-    classDef client fill:#b89f5d,stroke:#fff,stroke-width:2px,color:#1a1a1a,font-weight:bold
-
     subgraph Edge["Edge Layer (TEE)"]
-        A[AI Camera Emulator]:::hardware
+        A[AI Camera Emulator]
     end
 
     subgraph DataLayer["Data Layer (Vault)"]
-        B[(Independent Vault<br>Append-Only / Hot-Cold)]:::storage
+        B[(Independent Vault<br>Append-Only / Hot-Cold)]
     end
 
     subgraph EvidenceLayer["Evidence Layer"]
-        C{Merkle Aggregator}:::aggregator
+        C{Merkle Aggregator}
     end
 
     subgraph OnChain["Blockchain Layer"]
-        D[(Solana Smart Contract<br>Anchor Root)]:::blockchain
+        D[(Solana Smart Contract<br>Anchor Root)]
     end
 
     subgraph Verification["Verification Layer"]
-        E[Verifier DApp<br>Court / Police]:::client
+        E[Verifier DApp<br>Court / Police]
     end
 
     A -- "Encrypted Stream (.mdev)" --> B
