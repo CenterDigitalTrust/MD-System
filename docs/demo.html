@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -199,52 +199,52 @@
     <div class="top-row">
       <div>
         <h1>Evidence Chain Simulator</h1>
-        <p>Живая симуляция потока MD System: события с устройства хешируются на месте, собираются в Merkle-батч и фиксируются коммитментом в Solana поверх WORM-хранилища. Все хеши в этой демонстрации считаются реальным SHA-256 в браузере.</p>
+        <p>Live simulation of the MD System flow: device events are hashed on-site, aggregated into a Merkle batch, and committed to Solana over WORM storage. All hashes in this demonstration are real SHA-256 calculated in the browser.</p>
       </div>
-      <span class="badge">РЕЖИМ: ЛОКАЛЬНАЯ СИМУЛЯЦИЯ</span>
+      <span class="badge">MODE: LOCAL SIMULATION</span>
     </div>
   </header>
 
   <div class="controls">
-    <button class="primary" id="btnGenerate">Сгенерировать событие</button>
-    <button id="btnAuto">Автопоток: выкл</button>
-    <button id="btnBatch">Закрыть батч сейчас</button>
-    <button class="danger" id="btnTamper">Симулировать вмешательство</button>
+    <button class="primary" id="btnGenerate">Generate Event</button>
+    <button id="btnAuto">Auto-flow: off</button>
+    <button id="btnBatch">Close batch now</button>
+    <button class="danger" id="btnTamper">Simulate Tamper</button>
     <div class="stat-line">
-      <span>событий: <b id="statEvents">0</b></span>
-      <span>батчей: <b id="statBatches">0</b></span>
-      <span>целостность: <b id="statIntegrity" style="color:var(--teal)">100%</b></span>
+      <span>events: <b id="statEvents">0</b></span>
+      <span>batches: <b id="statBatches">0</b></span>
+      <span>integrity: <b id="statIntegrity" style="color:var(--teal)">100%</b></span>
     </div>
   </div>
 
   <div class="board">
     <section class="col">
-      <div class="col-head"><h2>Полевые устройства</h2><span class="n" id="devCount">0 в очереди</span></div>
+      <div class="col-head"><h2>Edge Devices</h2><span class="n" id="devCount">0 in queue</span></div>
       <div class="col-body" id="deviceFeed">
-        <div class="empty-hint">Нажмите «Сгенерировать событие» — устройство MD-CAM зафиксирует кадр, посчитает SHA-256 фрагмента и метаданных, и добавит его в очередь батча.</div>
+        <div class="empty-hint">Click "Generate Event" — the MD-CAM device will capture a frame, calculate the SHA-256 of the segment and metadata, and add it to the batch queue.</div>
       </div>
       <div class="col-foot">Edge Evidence Agent · event_id / device_id / hash / confidence</div>
     </section>
 
     <section class="col">
-      <div class="col-head"><h2>Merkle-батч</h2><span class="n" id="batchCount">0 батчей</span></div>
+      <div class="col-head"><h2>Merkle Batch</h2><span class="n" id="batchCount">0 batches</span></div>
       <div class="col-body" id="treeFeed">
-        <div class="empty-hint">Каждые 6 событий (или по кнопке) очередь сворачивается в дерево Merkle — попарное хеширование до одного корня.</div>
+        <div class="empty-hint">Every 6 events (or manually), the queue is folded into a Merkle tree — pairwise hashing down to a single root.</div>
       </div>
       <div class="col-foot">batch_id · merkle_root · hash_algo: sha256</div>
     </section>
 
     <section class="col">
-      <div class="col-head"><h2>Solana-коммитмент + WORM</h2><span class="n" id="commitCount">0 записей</span></div>
+      <div class="col-head"><h2>Solana Commitment + WORM</h2><span class="n" id="commitCount">0 records</span></div>
       <div class="col-body" id="commitFeed">
-        <div class="empty-hint">Корень дерева подписывается Evidence Signer и фиксируется как коммитмент. Само видео и метаданные остаются в S3 Object Lock (WORM) — в сеть уходит только хеш.</div>
+        <div class="empty-hint">The tree root is signed by the Evidence Signer and recorded as a commitment. The video and metadata remain in S3 Object Lock (WORM) — only the hash goes on-chain.</div>
       </div>
       <div class="col-foot">signer_pubkey · signature · storage_uri_hash</div>
     </section>
   </div>
 
   <footer>
-    Это офлайн-демонстрация логики протокола, а не подключение к реальной сети Solana: подписи и slot/timestamp сгенерированы локально для наглядности. Хеши SHA-256 — настоящие (Web Crypto API), структура Merkle-дерева и evidence package соответствуют пилотному гайду MD System.
+    This is an offline demonstration of the protocol logic, not a connection to the real Solana network: signatures and slot/timestamp are generated locally for illustration. SHA-256 hashes are real (Web Crypto API), and the Merkle tree structure and evidence package match the MD System pilot guide.
   </footer>
 </div>
 
@@ -339,7 +339,7 @@
       <div class="event-meta">${ev.device} · confidence ${ev.confidence} · ${ev.id}</div>
     `;
     feed.prepend(card);
-    el("devCount").textContent = queue.length + " в очереди";
+    el("devCount").textContent = queue.length + " in queue";
   }
 
   async function closeBatch() {
@@ -350,7 +350,7 @@
       const card = el("card-" + ev.id);
       if (card) card.classList.add("batched");
     });
-    el("devCount").textContent = "0 в очереди";
+    el("devCount").textContent = "0 in queue";
 
     batchCounter++;
     const batchId = "batch_" + String(batchCounter).padStart(4, "0");
@@ -395,7 +395,7 @@
     if (feed.querySelector(".empty-hint")) feed.innerHTML = "";
     const block = document.createElement("div");
     block.className = "batch-block";
-    let html = `<div class="batch-block-head"><span>${batch.id}</span><span>${batch.events.length} событий${batch.hasTamper ? " · TAMPER" : ""}</span></div>`;
+    let html = `<div class="batch-block-head"><span>${batch.id}</span><span>${batch.events.length} events${batch.hasTamper ? " · TAMPER" : ""}</span></div>`;
     for (let i = batch.levels.length - 1; i >= 0; i--) {
       const isRoot = i === batch.levels.length - 1;
       html += `<div class="tree-level">`;
@@ -407,7 +407,7 @@
     }
     block.innerHTML = html;
     feed.prepend(block);
-    el("batchCount").textContent = batches.length + " батчей";
+    el("batchCount").textContent = batches.length + " batches";
   }
 
   function renderCommitment(batch) {
@@ -417,7 +417,7 @@
     const card = document.createElement("div");
     card.className = "commit-card" + (batch.hasTamper ? " failed" : "");
     const statusColor = batch.hasTamper ? "var(--red)" : "var(--teal)";
-    const statusText = batch.hasTamper ? "ЦЕЛОСТНОСТЬ НАРУШЕНА" : "FINALIZED · WORM ЗАПИСАН";
+    const statusText = batch.hasTamper ? "INTEGRITY COMPROMISED" : "FINALIZED · WORM RECORDED";
     card.innerHTML = `
       <div class="commit-status"><span class="dot" style="background:${statusColor}"></span><span style="color:${statusColor}">${statusText}</span></div>
       <div class="commit-field"><span class="k">batch_id</span><span class="v">${batch.id}</span></div>
@@ -427,7 +427,7 @@
       <div class="commit-field"><span class="k">storage_uri_hash</span><span class="v">${c.storage_uri_hash}</span></div>
     `;
     feed.prepend(card);
-    el("commitCount").textContent = batches.length + " записей";
+    el("commitCount").textContent = batches.length + " records";
   }
 
   function updateStats() {
@@ -447,7 +447,7 @@
     modal.innerHTML = `
       <button class="modal-close" onclick="document.getElementById('modalOverlay').classList.remove('open')">×</button>
       <h3>${ev.id}</h3>
-      <div class="sub">${ev.type.label} · ${ev.device} · ${fmtTime(ev.time)} ${ev.tampered ? " · вмешательство симулировано" : ""}</div>
+      <div class="sub">${ev.type.label} · ${ev.device} · ${fmtTime(ev.time)} ${ev.tampered ? " · tamper simulated" : ""}</div>
       <div class="section-title">Evidence package</div>
       <div class="kv-grid">
         <span class="k">device_id</span><span class="v">${ev.device}</span>
@@ -468,7 +468,7 @@
         <span class="k">signer_pubkey</span><span class="v">${batch.commitment.signer_pubkey}</span>
         <span class="k">signature</span><span class="v">${batch.commitment.signature}</span>
         <span class="k">storage_uri_hash (WORM)</span><span class="v">${batch.commitment.storage_uri_hash}</span>
-      </div>` : `<div class="empty-hint" style="padding:16px 0;">Ещё в очереди — батч не закрыт, коммитмента пока нет.</div>`}
+      </div>` : `<div class="empty-hint" style="padding:16px 0;">Still in queue — batch is not closed, no commitment yet.</div>`}
     `;
     el("modalOverlay").classList.add("open");
   }
@@ -484,10 +484,10 @@
     if (autoTimer) {
       clearInterval(autoTimer);
       autoTimer = null;
-      this.textContent = "Автопоток: выкл";
+      this.textContent = "Auto-flow: off";
     } else {
       autoTimer = setInterval(generateEvent, 1400);
-      this.textContent = "Автопоток: вкл";
+      this.textContent = "Auto-flow: on";
     }
   });
 
