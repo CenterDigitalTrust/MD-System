@@ -1,0 +1,8 @@
+opencv-python>=4.8
+numpy>=1.26
+cryptography>=42.0
+PyYAML>=6.0
+
+# Optional — only needed if solana.enabled: true in config.yaml
+solana>=0.34
+solders>=0.20

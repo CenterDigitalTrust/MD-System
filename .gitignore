@@ -1,0 +1,9 @@
+node_modules/
+.next/
+dist/
+*.db
+__pycache__/
+*.mdev
+*.bin
+.env
+uploads/

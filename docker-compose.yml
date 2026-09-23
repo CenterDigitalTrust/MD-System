@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  merkle-aggregator:
+    build:
+      context: ./merkle-aggregator
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+    networks:
+      - md-network
+
+  independent-vault:
+    build:
+      context: ./independent-vault
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - PORT=4000
+    networks:
+      - md-network
+      
+  hardware-emulator:
+    build:
+      context: ./hardware-emulator
+      dockerfile: Dockerfile
+    environment:
+      - AGGREGATOR_URL=http://merkle-aggregator:3000
+      - VAULT_URL=http://independent-vault:4000
+    depends_on:
+      - merkle-aggregator
+    networks:
+      - md-network
+
+  verifier-dapp:
+    build:
+      context: ./verifier-dapp
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      - NEXT_PUBLIC_SOLANA_RPC_URL=http://127.0.0.1:8899 # Placeholder for local validator
+      - NEXT_PUBLIC_AGGREGATOR_URL=http://localhost:3000
+    networks:
+      - md-network
+
+networks:
+  md-network:
+    driver: bridge

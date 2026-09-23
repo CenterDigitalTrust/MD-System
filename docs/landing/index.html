@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD System - Trustless Data Verification</title>
+    <style>
+        :root {
+            --ink: #1a1a1a;
+            --brass-bright: #d4af37;
+            --paper: #f4f4f0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--ink);
+            color: var(--paper);
+            line-height: 1.6;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--paper);
+            text-decoration: none;
+        }
+        .logo span {
+            color: var(--brass-bright);
+        }
+        .nav-links a {
+            color: var(--paper);
+            text-decoration: none;
+            margin-left: 30px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover {
+            color: var(--brass-bright);
+        }
+        .btn-primary {
+            background-color: var(--brass-bright);
+            color: var(--ink) !important;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .hero {
+            padding: 100px 40px;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        .hero p {
+            font-size: 1.2rem;
+            color: #aaa;
+            margin-bottom: 40px;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 60px 40px;
+            background: var(--paper);
+            color: var(--ink);
+        }
+        .feature-card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-top: 4px solid var(--brass-bright);
+        }
+        .feature-card h3 {
+            margin-top: 0;
+            color: var(--ink);
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <a href="#" class="logo">MD <span>System</span></a>
+        <div class="nav-links">
+            <a href="#about">О системе</a>
+            <a href="#tech">Технологии</a>
+            <!-- Ссылка на локальный порт DApp -->
+            <a href="http://localhost:3001" class="btn-primary" target="_blank">MD-Verifier</a>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <h1>Абсолютное доверие к цифровым доказательствам</h1>
+        <p>Аппаратно-программный комплекс MD System обеспечивает криптографически доказуемый след от объектива камеры до записи в блокчейн Solana, исключая любую возможность подмены администратором.</p>
+        <a href="http://localhost:3001" class="btn-primary" style="display: inline-block; font-size: 1.1rem; padding: 15px 30px;" target="_blank">Открыть MD-Verifier</a>
+    </div>
+
+    <div class="features" id="tech">
+        <div class="feature-card">
+            <h3>Аппаратный TEE</h3>
+            <p>Метаданные (ГЕО + Точное время) скрепляются с хешем видеокадра и подписываются на уровне железа с помощью ключей Ed25519.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Формат .mdev</h3>
+            <p>Собственный защищенный контейнер, исключающий бытовое воспроизведение и редактирование видеоматериалов до подтверждения подлинности.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Solana Anchoring</h3>
+            <p>Агрегация данных через деревья Меркла с последующей фиксацией корня в смарт-контракте на блокчейне Solana для вечного и неизменного хранения.</p>
+        </div>
+    </div>
+
+</body>
+</html>

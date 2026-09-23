@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MD System — Evidence Chain Simulator</title>
+<style>
+  :root{
+    --bg: #101114;
+    --panel: #17181c;
+    --panel-2: #1d1f24;
+    --line: #2a2c32;
+    --text: #ECEDEF;
+    --muted: #8A8D93;
+    --amber: #F2A93B;
+    --amber-dim: #6b5527;
+    --teal: #3DDC97;
+    --teal-dim: #205943;
+    --red: #E5484D;
+    --red-dim: #5c2528;
+    --mono: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+    --serif: Iowan Old Style, Georgia, "Times New Roman", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    padding: 28px 24px 60px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+
+  header { margin-bottom: 26px; border-bottom: 1px solid var(--line); padding-bottom: 20px; }
+  header .top-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  h1 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 30px;
+    margin: 0 0 6px;
+    letter-spacing: 0.2px;
+  }
+  header p { color: var(--muted); margin: 0; font-size: 14.5px; max-width: 640px; line-height: 1.5; }
+  .badge {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    padding: 5px 10px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  .controls { display: flex; gap: 10px; margin: 18px 0 28px; flex-wrap: wrap; align-items: center; }
+  button {
+    font-family: var(--sans);
+    font-size: 13.5px;
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--line);
+    padding: 9px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  button:hover { border-color: #454852; background: #22242a; }
+  button.primary { background: var(--amber); color: #1b1204; border-color: var(--amber); font-weight: 600; }
+  button.primary:hover { background: #f5b654; }
+  button.danger { border-color: var(--red-dim); color: #f0a3a6; }
+  button.danger:hover { background: var(--red-dim); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  .stat-line { display:flex; gap: 22px; margin-left: auto; font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+  .stat-line b { color: var(--text); font-weight: 600; }
+
+  .board {
+    display: grid;
+    grid-template-columns: 1.05fr 1.15fr 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+  @media (max-width: 900px) { .board { grid-template-columns: 1fr; } }
+
+  .col {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    min-height: 460px;
+    display: flex;
+    flex-direction: column;
+  }
+  .col-head {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .col-head h2 { font-size: 14px; font-weight: 600; margin: 0; }
+  .col-head span.n { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+  .col-body { padding: 12px; flex: 1; overflow-y: auto; max-height: 560px; }
+  .col-foot { padding: 10px 16px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--muted); font-family: var(--mono); }
+
+  /* Device event cards */
+  .event-card {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    animation: slideIn .3s ease;
+  }
+  .event-card:hover { border-color: var(--amber); }
+  .event-card.batched { opacity: .55; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+  .event-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+  .event-type { font-size: 12.5px; font-weight: 600; }
+  .event-type .dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:6px; }
+  .event-time { font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
+  .event-hash { font-family: var(--mono); font-size: 10.5px; color: var(--teal); word-break: break-all; }
+  .event-meta { font-size: 10.5px; color: var(--muted); margin-top: 4px; }
+
+  /* Merkle tree */
+  .batch-block { border: 1px solid var(--line); border-radius: 5px; margin-bottom: 14px; background: var(--panel-2); }
+  .batch-block-head { padding: 8px 12px; font-family: var(--mono); font-size: 11px; color: var(--muted); border-bottom: 1px solid var(--line); display:flex; justify-content:space-between; }
+  .tree-level { display: flex; justify-content: center; gap: 8px; padding: 8px 10px; flex-wrap: wrap; }
+  .tree-node {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    background: #23262c;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    padding: 5px 7px;
+    border-radius: 3px;
+    max-width: 92px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tree-node.root { background: var(--teal-dim); color: var(--teal); border-color: var(--teal); font-weight: 600; max-width: none; }
+  .tree-connector { text-align: center; color: var(--line); font-size: 10px; padding: 2px 0; }
+
+  /* Commitment / WORM */
+  .commit-card {
+    background: var(--panel-2);
+    border: 1px solid var(--teal-dim);
+    border-radius: 5px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .commit-card.pending { border-color: var(--amber-dim); }
+  .commit-card.failed { border-color: var(--red-dim); }
+  .commit-status { display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; margin-bottom: 8px; }
+  .commit-status .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .commit-field { display: flex; justify-content: space-between; gap: 8px; font-family: var(--mono); font-size: 10.5px; margin-bottom: 3px; }
+  .commit-field .k { color: var(--muted); flex-shrink: 0; }
+  .commit-field .v { color: var(--text); text-align: right; word-break: break-all; }
+
+  .empty-hint { color: var(--muted); font-size: 12.5px; padding: 30px 16px; text-align: center; line-height: 1.6; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(8,8,9,.72);
+    align-items: center; justify-content: center;
+    z-index: 50;
+    padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    max-width: 620px;
+    width: 100%;
+    max-height: 86vh;
+    overflow-y: auto;
+    padding: 22px 24px;
+  }
+  .modal h3 { font-family: var(--serif); font-weight: 400; font-size: 20px; margin: 0 0 4px; }
+  .modal .sub { color: var(--muted); font-size: 12.5px; margin-bottom: 16px; }
+  .kv-grid { display: grid; grid-template-columns: 150px 1fr; gap: 7px 12px; font-family: var(--mono); font-size: 11.5px; }
+  .kv-grid .k { color: var(--muted); }
+  .kv-grid .v { color: var(--text); word-break: break-all; }
+  .kv-grid .v.hi { color: var(--teal); }
+  .kv-grid .v.warn { color: var(--red); }
+  .modal-close { float: right; background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; padding: 0; line-height: 1; }
+  .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 18px 0 8px; border-top: 1px solid var(--line); padding-top: 14px; }
+
+  footer { margin-top: 30px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="top-row">
+      <div>
+        <h1>Evidence Chain Simulator</h1>
+        <p>Живая симуляция потока MD System: события с устройства хешируются на месте, собираются в Merkle-батч и фиксируются коммитментом в Solana поверх WORM-хранилища. Все хеши в этой демонстрации считаются реальным SHA-256 в браузере.</p>
+      </div>
+      <span class="badge">РЕЖИМ: ЛОКАЛЬНАЯ СИМУЛЯЦИЯ</span>
+    </div>
+  </header>
+
+  <div class="controls">
+    <button class="primary" id="btnGenerate">Сгенерировать событие</button>
+    <button id="btnAuto">Автопоток: выкл</button>
+    <button id="btnBatch">Закрыть батч сейчас</button>
+    <button class="danger" id="btnTamper">Симулировать вмешательство</button>
+    <div class="stat-line">
+      <span>событий: <b id="statEvents">0</b></span>
+      <span>батчей: <b id="statBatches">0</b></span>
+      <span>целостность: <b id="statIntegrity" style="color:var(--teal)">100%</b></span>
+    </div>
+  </div>
+
+  <div class="board">
+    <section class="col">
+      <div class="col-head"><h2>Полевые устройства</h2><span class="n" id="devCount">0 в очереди</span></div>
+      <div class="col-body" id="deviceFeed">
+        <div class="empty-hint">Нажмите «Сгенерировать событие» — устройство MD-CAM зафиксирует кадр, посчитает SHA-256 фрагмента и метаданных, и добавит его в очередь батча.</div>
+      </div>
+      <div class="col-foot">Edge Evidence Agent · event_id / device_id / hash / confidence</div>
+    </section>
+
+    <section class="col">
+      <div class="col-head"><h2>Merkle-батч</h2><span class="n" id="batchCount">0 батчей</span></div>
+      <div class="col-body" id="treeFeed">
+        <div class="empty-hint">Каждые 6 событий (или по кнопке) очередь сворачивается в дерево Merkle — попарное хеширование до одного корня.</div>
+      </div>
+      <div class="col-foot">batch_id · merkle_root · hash_algo: sha256</div>
+    </section>
+
+    <section class="col">
+      <div class="col-head"><h2>Solana-коммитмент + WORM</h2><span class="n" id="commitCount">0 записей</span></div>
+      <div class="col-body" id="commitFeed">
+        <div class="empty-hint">Корень дерева подписывается Evidence Signer и фиксируется как коммитмент. Само видео и метаданные остаются в S3 Object Lock (WORM) — в сеть уходит только хеш.</div>
+      </div>
+      <div class="col-foot">signer_pubkey · signature · storage_uri_hash</div>
+    </section>
+  </div>
+
+  <footer>
+    Это офлайн-демонстрация логики протокола, а не подключение к реальной сети Solana: подписи и slot/timestamp сгенерированы локально для наглядности. Хеши SHA-256 — настоящие (Web Crypto API), структура Merkle-дерева и evidence package соответствуют пилотному гайду MD System.
+  </footer>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalBody"></div>
+</div>
+
+<script>
+(function(){
+  const EVENT_TYPES = [
+    { type: "motion", label: "Motion detected", color: "#F2A93B" },
+    { type: "person", label: "Person in frame", color: "#3DDC97" },
+    { type: "vehicle", label: "Vehicle detected", color: "#7AA2F7" },
+    { type: "tamper", label: "Tamper / occlusion", color: "#E5484D" },
+    { type: "network_loss", label: "Network loss (STEALTH)", color: "#8A8D93" }
+  ];
+  const DEVICES = ["MD-CAM-014", "MD-CAM-027", "MD-CAM-041", "MD-CAM-058"];
+  const BATCH_SIZE = 6;
+
+  let queue = [];          // events waiting for the next batch
+  let allEvents = [];      // full log, for modal lookup
+  let batches = [];        // completed batches with tree + commitment
+  let eventCounter = 0;
+  let batchCounter = 0;
+  let autoTimer = null;
+  let tamperedCount = 0;
+
+  const el = (id) => document.getElementById(id);
+
+  async function sha256Hex(str) {
+    const enc = new TextEncoder().encode(str);
+    const buf = await crypto.subtle.digest("SHA-256", enc);
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  function randBase58(len) {
+    const chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+    let out = "";
+    for (let i = 0; i < len; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    return out;
+  }
+
+  function fmtTime(d) {
+    return d.toTimeString().slice(0,8) + "." + String(d.getMilliseconds()).padStart(3,"0");
+  }
+
+  async function generateEvent() {
+    eventCounter++;
+    const t = EVENT_TYPES[Math.floor(Math.random() * (EVENT_TYPES.length - 1))]; // bias away from tamper for organic flow
+    const device = DEVICES[Math.floor(Math.random() * DEVICES.length)];
+    const now = new Date();
+    const eventId = "evt_" + String(eventCounter).padStart(5, "0");
+    const confidence = (0.82 + Math.random() * 0.17).toFixed(3);
+
+    const payload = JSON.stringify({
+      event_id: eventId, device_id: device, ts: now.toISOString(),
+      type: t.type, confidence, salt: randBase58(12)
+    });
+    const videoHash = await sha256Hex(payload + ":video_segment");
+    const metaHash = await sha256Hex(payload + ":metadata");
+
+    const ev = {
+      id: eventId, device, type: t, time: now, confidence,
+      video_segment_hash: videoHash, metadata_hash: metaHash,
+      model_version: "md-detect-v2.3.1", model_hash: (await sha256Hex("model:v2.3.1")).slice(0,16),
+      firmware_version: "edge-agent-1.9.0", firmware_hash: (await sha256Hex("fw:1.9.0")).slice(0,16),
+      device_signature: randBase58(44),
+      batched: false, tampered: false
+    };
+
+    allEvents.push(ev);
+    queue.push(ev);
+    renderDeviceCard(ev);
+    updateStats();
+
+    if (queue.length >= BATCH_SIZE) closeBatch();
+  }
+
+  function renderDeviceCard(ev) {
+    const feed = el("deviceFeed");
+    if (feed.querySelector(".empty-hint")) feed.innerHTML = "";
+    const card = document.createElement("div");
+    card.className = "event-card";
+    card.id = "card-" + ev.id;
+    card.onclick = () => openModal(ev.id);
+    card.innerHTML = `
+      <div class="event-top">
+        <span class="event-type"><span class="dot" style="background:${ev.type.color}"></span>${ev.type.label}</span>
+        <span class="event-time">${fmtTime(ev.time)}</span>
+      </div>
+      <div class="event-hash">${ev.video_segment_hash.slice(0,40)}…</div>
+      <div class="event-meta">${ev.device} · confidence ${ev.confidence} · ${ev.id}</div>
+    `;
+    feed.prepend(card);
+    el("devCount").textContent = queue.length + " в очереди";
+  }
+
+  async function closeBatch() {
+    if (queue.length === 0) return;
+    const batchEvents = queue.splice(0, queue.length);
+    batchEvents.forEach(ev => {
+      ev.batched = true;
+      const card = el("card-" + ev.id);
+      if (card) card.classList.add("batched");
+    });
+    el("devCount").textContent = "0 в очереди";
+
+    batchCounter++;
+    const batchId = "batch_" + String(batchCounter).padStart(4, "0");
+
+    // build merkle tree
+    let level = [];
+    for (const ev of batchEvents) level.push(await sha256Hex(ev.video_segment_hash + ev.metadata_hash));
+    const levels = [level];
+    while (level.length > 1) {
+      const next = [];
+      for (let i = 0; i < level.length; i += 2) {
+        const left = level[i];
+        const right = level[i + 1] !== undefined ? level[i + 1] : level[i];
+        next.push(await sha256Hex(left + right));
+      }
+      level = next;
+      levels.push(level);
+    }
+    const root = level[0];
+    const hasTamper = batchEvents.some(e => e.tampered);
+
+    const batch = {
+      id: batchId, events: batchEvents, levels, root,
+      hasTamper,
+      commitment: {
+        merkle_root: root,
+        signer_pubkey: randBase58(44),
+        signature: randBase58(88),
+        slot: 340000000 + Math.floor(Math.random() * 900000),
+        created_at: new Date().toISOString(),
+        storage_uri_hash: (await sha256Hex(batchId + ":s3-object-lock-uri")).slice(0,32)
+      }
+    };
+    batches.push(batch);
+    renderBatch(batch);
+    renderCommitment(batch);
+    updateStats();
+  }
+
+  function renderBatch(batch) {
+    const feed = el("treeFeed");
+    if (feed.querySelector(".empty-hint")) feed.innerHTML = "";
+    const block = document.createElement("div");
+    block.className = "batch-block";
+    let html = `<div class="batch-block-head"><span>${batch.id}</span><span>${batch.events.length} событий${batch.hasTamper ? " · TAMPER" : ""}</span></div>`;
+    for (let i = batch.levels.length - 1; i >= 0; i--) {
+      const isRoot = i === batch.levels.length - 1;
+      html += `<div class="tree-level">`;
+      batch.levels[i].forEach(h => {
+        html += `<div class="tree-node${isRoot ? " root" : ""}">${isRoot ? "root " : ""}${h.slice(0, isRoot ? 24 : 8)}</div>`;
+      });
+      html += `</div>`;
+      if (i > 0) html += `<div class="tree-connector">↑ pairwise SHA-256</div>`;
+    }
+    block.innerHTML = html;
+    feed.prepend(block);
+    el("batchCount").textContent = batches.length + " батчей";
+  }
+
+  function renderCommitment(batch) {
+    const feed = el("commitFeed");
+    if (feed.querySelector(".empty-hint")) feed.innerHTML = "";
+    const c = batch.commitment;
+    const card = document.createElement("div");
+    card.className = "commit-card" + (batch.hasTamper ? " failed" : "");
+    const statusColor = batch.hasTamper ? "var(--red)" : "var(--teal)";
+    const statusText = batch.hasTamper ? "ЦЕЛОСТНОСТЬ НАРУШЕНА" : "FINALIZED · WORM ЗАПИСАН";
+    card.innerHTML = `
+      <div class="commit-status"><span class="dot" style="background:${statusColor}"></span><span style="color:${statusColor}">${statusText}</span></div>
+      <div class="commit-field"><span class="k">batch_id</span><span class="v">${batch.id}</span></div>
+      <div class="commit-field"><span class="k">merkle_root</span><span class="v">${c.merkle_root.slice(0,28)}…</span></div>
+      <div class="commit-field"><span class="k">slot</span><span class="v">${c.slot}</span></div>
+      <div class="commit-field"><span class="k">signer_pubkey</span><span class="v">${c.signer_pubkey.slice(0,20)}…</span></div>
+      <div class="commit-field"><span class="k">storage_uri_hash</span><span class="v">${c.storage_uri_hash}</span></div>
+    `;
+    feed.prepend(card);
+    el("commitCount").textContent = batches.length + " записей";
+  }
+
+  function updateStats() {
+    el("statEvents").textContent = allEvents.length;
+    el("statBatches").textContent = batches.length;
+    const integrity = allEvents.length === 0 ? 100 : Math.round(100 * (1 - tamperedCount / allEvents.length));
+    const stat = el("statIntegrity");
+    stat.textContent = integrity + "%";
+    stat.style.color = integrity < 100 ? "var(--red)" : "var(--teal)";
+  }
+
+  function openModal(eventId) {
+    const ev = allEvents.find(e => e.id === eventId);
+    if (!ev) return;
+    const batch = batches.find(b => b.events.some(e => e.id === eventId));
+    const modal = el("modalBody");
+    modal.innerHTML = `
+      <button class="modal-close" onclick="document.getElementById('modalOverlay').classList.remove('open')">×</button>
+      <h3>${ev.id}</h3>
+      <div class="sub">${ev.type.label} · ${ev.device} · ${fmtTime(ev.time)} ${ev.tampered ? " · вмешательство симулировано" : ""}</div>
+      <div class="section-title">Evidence package</div>
+      <div class="kv-grid">
+        <span class="k">device_id</span><span class="v">${ev.device}</span>
+        <span class="k">event_type</span><span class="v">${ev.type.type}</span>
+        <span class="k">confidence</span><span class="v">${ev.confidence}</span>
+        <span class="k">video_segment_hash</span><span class="v${ev.tampered ? " warn" : " hi"}">${ev.video_segment_hash}</span>
+        <span class="k">metadata_hash</span><span class="v">${ev.metadata_hash}</span>
+        <span class="k">model_version / hash</span><span class="v">${ev.model_version} / ${ev.model_hash}</span>
+        <span class="k">firmware_version / hash</span><span class="v">${ev.firmware_version} / ${ev.firmware_hash}</span>
+        <span class="k">device_signature</span><span class="v">${ev.device_signature}</span>
+      </div>
+      ${batch ? `
+      <div class="section-title">Merkle / Solana commitment</div>
+      <div class="kv-grid">
+        <span class="k">batch_id</span><span class="v">${batch.id}</span>
+        <span class="k">merkle_root</span><span class="v${batch.hasTamper ? " warn" : " hi"}">${batch.root}</span>
+        <span class="k">slot</span><span class="v">${batch.commitment.slot}</span>
+        <span class="k">signer_pubkey</span><span class="v">${batch.commitment.signer_pubkey}</span>
+        <span class="k">signature</span><span class="v">${batch.commitment.signature}</span>
+        <span class="k">storage_uri_hash (WORM)</span><span class="v">${batch.commitment.storage_uri_hash}</span>
+      </div>` : `<div class="empty-hint" style="padding:16px 0;">Ещё в очереди — батч не закрыт, коммитмента пока нет.</div>`}
+    `;
+    el("modalOverlay").classList.add("open");
+  }
+
+  el("modalOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "modalOverlay") e.currentTarget.classList.remove("open");
+  });
+
+  el("btnGenerate").addEventListener("click", generateEvent);
+  el("btnBatch").addEventListener("click", closeBatch);
+
+  el("btnAuto").addEventListener("click", function() {
+    if (autoTimer) {
+      clearInterval(autoTimer);
+      autoTimer = null;
+      this.textContent = "Автопоток: выкл";
+    } else {
+      autoTimer = setInterval(generateEvent, 1400);
+      this.textContent = "Автопоток: вкл";
+    }
+  });
+
+  el("btnTamper").addEventListener("click", async function() {
+    if (queue.length === 0) { await generateEvent(); }
+    const target = queue[queue.length - 1];
+    if (!target) return;
+    target.tampered = true;
+    target.video_segment_hash = await sha256Hex("TAMPERED:" + target.video_segment_hash);
+    tamperedCount++;
+    const card = el("card-" + target.id);
+    if (card) {
+      card.style.borderColor = "var(--red)";
+      const hashLine = card.querySelector(".event-hash");
+      if (hashLine) { hashLine.textContent = target.video_segment_hash.slice(0,40) + "…"; hashLine.style.color = "var(--red)"; }
+    }
+    updateStats();
+  });
+})();
+</script>
+</body>
+</html>

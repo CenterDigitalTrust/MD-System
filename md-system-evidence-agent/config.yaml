@@ -1,0 +1,30 @@
+device_id: MD-CAM-DEV-001
+
+capture:
+  # 0 (or another int) for a webcam, a file path for a test video,
+  # or an rtsp://... URL once real hardware is on the bench.
+  source: 0
+
+event_detection:
+  min_contour_area: 1500
+  cooldown_seconds: 3
+  pre_buffer_frames: 15
+  post_buffer_frames: 15
+
+batching:
+  batch_size: 6
+  batch_timeout_seconds: 60
+
+storage:
+  data_dir: ./data
+
+solana:
+  enabled: false                    # flip to true once you have a devnet keypair
+  rpc_url: https://api.devnet.solana.com
+  keypair_path: ./keys/evidence_signer.json
+
+model:
+  version: "md-detect-motion-v0.1"   # placeholder heuristic, see event_detector.py
+
+firmware:
+  version: "edge-agent-0.1.0"
