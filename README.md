@@ -87,6 +87,6 @@ docker-compose up --build
 ```
 
 The services will be available at:
-*   **Verifier DApp (UI)**: `http://localhost:3001`
-*   **Independent Vault API**: `http://localhost:4000`
-*   **Merkle Aggregator API**: `http://localhost:3000`
+*   **EN**: `https://digitaltrust.living/en`
+*   **ES**: `https://digitaltrust.living/es`
+*   **RU/UA**: `https://digitaltrust.living`
